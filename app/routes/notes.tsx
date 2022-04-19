@@ -35,6 +35,9 @@ export const action: ActionFunction = async ({ request }) => {
   if (typeof id !== "string") {
     throw json({ error: "noteId is required" }, { status: 400 });
   }
+  if (Math.random() < 0.5) {
+    return json({ error: "This was a random failure" }, { status: 500 });
+  }
   await deleteNote({ id, userId });
   return new Response("ok");
 };
@@ -111,24 +114,25 @@ function NoteLi({ note }: { note: Pick<Note, "id" | "title"> }) {
   if (isDeleting) return null;
 
   return (
-    <li
-      className={`flex justify-between border-b p-4 text-xl ${
-        isDeleting ? "opacity-30" : ""
-      }`}
-    >
-      <NavLink
-        className={({ isActive }) => `${isActive ? "bg-white" : ""}`}
-        to={note.id}
-        prefetch="intent"
-      >
-        📝 {note.title}
-      </NavLink>
-      <fetcher.Form method="post">
-        <input type="hidden" name="noteId" value={note.id} />
-        <button disabled={isDeleting} name="action" value="delete-note">
-          🗑
-        </button>
-      </fetcher.Form>
+    <li className={`border-b p-4 ${isDeleting ? "opacity-30" : ""}`}>
+      <div className="flex justify-between text-xl">
+        <NavLink
+          className={({ isActive }) => `${isActive ? "bg-white" : ""}`}
+          to={note.id}
+          prefetch="intent"
+        >
+          📝 {note.title}
+        </NavLink>
+        <fetcher.Form method="post">
+          <input type="hidden" name="noteId" value={note.id} />
+          <button disabled={isDeleting} name="action" value="delete-note">
+            🗑
+          </button>
+        </fetcher.Form>
+      </div>
+      {fetcher.data?.error ? (
+        <span className="text-red-700">{fetcher.data.error}</span>
+      ) : null}
     </li>
   );
 }
